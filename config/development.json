@@ -1,5 +1,5 @@
 {
-  "db": "localhost/oauth-example",
+  "db": "mongodb://kerem:kerem@novus.modulusmongo.net:27017/na3gunIq",
   "emailer": {
     "from": "support@papers.example.com"
   },

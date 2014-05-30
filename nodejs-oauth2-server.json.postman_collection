@@ -1,0 +1,126 @@
+{
+	"id": "a90ef9c2-9fa4-3ec7-26ea-b62bfe247a6e",
+	"name": "nodejs-oauth2-server",
+	"description": "",
+	"order": [
+		"2c8a486d-b8b8-19e9-a3ca-1cc3288ec7d3",
+		"5d0467ed-35bc-9d36-9a71-07a61af67358",
+		"5e9b0115-5656-90e3-f315-165ab1e1d37c"
+	],
+	"folders": [],
+	"timestamp": 1401455299020,
+	"synced": false,
+	"requests": [
+		{
+			"id": "2c8a486d-b8b8-19e9-a3ca-1cc3288ec7d3",
+			"headers": "",
+			"url": "http://localhost:3000/oauth/token",
+			"pathVariables": {},
+			"method": "POST",
+			"data": [
+				{
+					"key": "username",
+					"value": "alex@example.com",
+					"type": "text"
+				},
+				{
+					"key": "password",
+					"value": "test",
+					"type": "text"
+				},
+				{
+					"key": "client_id",
+					"value": "papers3",
+					"type": "text"
+				},
+				{
+					"key": "client_secret",
+					"value": "123",
+					"type": "text"
+				},
+				{
+					"key": "grant_type",
+					"value": "password",
+					"type": "text"
+				}
+			],
+			"dataMode": "urlencoded",
+			"name": "get token",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1401455299020,
+			"version": 2,
+			"responses": [],
+			"tests": "",
+			"collectionId": "a90ef9c2-9fa4-3ec7-26ea-b62bfe247a6e",
+			"synced": false
+		},
+		{
+			"id": "5d0467ed-35bc-9d36-9a71-07a61af67358",
+			"headers": "Authorization: Bearer [token]\n",
+			"url": "http://localhost:3000/secret",
+			"pathVariables": {},
+			"method": "GET",
+			"data": [],
+			"dataMode": "params",
+			"name": "go secret page",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1401456848320,
+			"version": 2,
+			"responses": [],
+			"tests": "",
+			"collectionId": "a90ef9c2-9fa4-3ec7-26ea-b62bfe247a6e",
+			"synced": false
+		},
+		{
+			"id": "5e9b0115-5656-90e3-f315-165ab1e1d37c",
+			"headers": "",
+			"url": "http://localhost:3000/oauth/token",
+			"pathVariables": {},
+			"method": "POST",
+			"data": [
+				{
+					"key": "username",
+					"value": "alex@example.com",
+					"type": "text"
+				},
+				{
+					"key": "password",
+					"value": "test",
+					"type": "text"
+				},
+				{
+					"key": "client_id",
+					"value": "papers3",
+					"type": "text"
+				},
+				{
+					"key": "client_secret",
+					"value": "123",
+					"type": "text"
+				},
+				{
+					"key": "grant_type",
+					"value": "refresh_token",
+					"type": "text"
+				},
+				{
+					"key": "refresh_token",
+					"value": "",
+					"type": "text"
+				}
+			],
+			"dataMode": "urlencoded",
+			"name": "refresh token",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1401458024930,
+			"version": 2,
+			"responses": [],
+			"tests": "",
+			"collectionId": "a90ef9c2-9fa4-3ec7-26ea-b62bfe247a6e",
+			"synced": false
+		}
+	]
+}

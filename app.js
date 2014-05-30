@@ -22,7 +22,9 @@ app.configure('development', 'production', function() {
   app.use(express.logger('dev'));
 });
 
-app.use(express.bodyParser());
+app.use(express.json());
+app.use(express.urlencoded());
+
 app.use(express.methodOverride());
 
 app.oauth = oauthserver({
@@ -83,7 +85,7 @@ app.post('/oauth/authorise', function(req, res, next) {
 }));
 
 app.get('/secret', middleware.requiresUser, function(req, res) {
-  res.send('Secret area');
+  res.send('Secret area '+req.user.id);
 });
 
 app.use(app.oauth.errorHandler());
