@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<!-- saved from url=(0050)http://blog.papersapp.com/oauth-server-in-node-js/ -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    
+    <title>Building a Node OAuth2 server</title>
+    <meta name="description" content="">
+
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="shortcut icon" href="http://blog.papersapp.com/assets/images/favicon.ico?v=5b53ef9dd0">
+
+    
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="./info_files/screen.css">
+    <link rel="stylesheet" type="text/css" href="./info_files/css">
+    <link href="./info_files/css(1)" rel="stylesheet" type="text/css">
+<div class="fit-vids-style" id="fit-vids-style" style="display: none;">­<style>.fluid-width-video-wrapper{width:100%;position:relative;padding:0;}.fluid-width-video-wrapper iframe,.fluid-width-video-wrapper object,.fluid-width-video-wrapper embed {position:absolute;top:0;left:0;width:100%;height:100%;}</style></div><script async="" src="./info_files/analytics.js"></script><script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-5615472-3', 'papersapp.com');
+  ga('send', 'pageview');
+
+</script>
+    
+    <meta name="generator" content="Ghost 0.4">
+<link rel="alternate" type="application/rss+xml" title="Papers" href="http://blog.papersapp.com/rss/">
+<link rel="canonical" href="./info_files/info.html">
+<link type="text/css" rel="stylesheet" href="chrome-extension://cpngackimfmofbokmjmljamhdncknpmg/style.css"><script type="text/javascript" charset="utf-8" src="chrome-extension://cpngackimfmofbokmjmljamhdncknpmg/js/page_context.js"></script></head>
+<body class="post-template" screen_capture_injected="true">
+
+    
+    
+
+
+
+<main class="content" role="main">
+    
+    
+    <header class="site-head">
+        <div class="vertical">
+            <div class="site-head-content inner">
+                
+                <h1 class="blog-title">
+                    <a href="http://blog.papersapp.com/">
+                        <img src="./info_files/logo-circle.png">
+                        <span class="mobile-title">Papers</span>
+                    </a>
+                </h1>
+                <div class="navbar-header">
+                  <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#papersnav">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                  </button>
+                </div>
+                <ul class="nav navbar-nav navbar-left navbar-description">
+                    <li><h6 class="site-description">Papers: The footnotes</h6></li>
+                </ul>
+                <div class="collapse navbar-collapse" id="papersnav">
+                    <ul class="nav navbar-nav navbar-right">
+                      <li><a href="http://papersapp.com/about/" target="_blank">About Papers</a></li>
+                      <li class="dropdown">
+                        <a href="http://blog.papersapp.com/oauth-server-in-node-js/#" class="dropdown-toggle" data-toggle="dropdown"> Learn more <b class="caret"></b></a>
+                        <ul class="dropdown-menu dropdown toggle-dropdown">
+                            <li><a href="http://papersapp.com/">Home</a></li>
+                            <li><a href="http://www.papersapp.com/mac/">Papers for Mac</a></li>
+                            <li><a href="http://papersapp.com/ios/">Papers for iOS</a></li>
+                            <li><a href="http://papersapp.com/windows/">Papers for Windows</a></li>
+                        </ul>
+                      </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <article class="post">
+
+        
+        
+
+            <span class="post-meta"><time datetime="2014-03-31">31 Mar 2014</time> </span>
+
+            <h1 class="post-title">Building a Node OAuth2 server</h1>
+
+            <section class="post-content">
+                <p>At Papers we have been looking for an authentication solution that:</p>
+
+<ol>
+<li>Allowed us not to store sensitive data in the client -- namely usernames and passwords.  </li>
+<li>Was relatively easy to implement in Cocoa and .NET.</li>
+</ol>
+
+<p>We decided to go for what's known as <a href="http://techblog.hybris.com/2012/06/11/oauth2-resource-owner-password-flow/">resource owner password flow</a> and chose <a href="https://github.com/thomseddon/node-oauth2-server/">node-oauth2-server</a> to build our server.</p>
+
+<p>While Papers is not open-source, <a href="https://twitter.com/alex_young">Alex</a> has put together a lightweight implementation that uses the node-oauth2-server module and mirrors Papers' authentication process. This is currently <a href="https://github.com/mekentosj/oauth2-example">available on GitHub</a> for you to play around with as well. </p>
+
+<p>This article is a walkthrough of Papers' test-driven implementation of an OAuth server using Node.</p>
+
+<h3 id="resourceownerpasswordflow">Resource owner password flow</h3>
+
+<p>We decided to go for what's known as <a href="http://techblog.hybris.com/2012/06/11/oauth2-resource-owner-password-flow/">resource owner password flow</a> and chose <a href="https://github.com/thomseddon/node-oauth2-server/">node-oauth2-server</a> to build our server.</p>
+
+<p>The reason we used <em>resource owner password flow</em> is because we're implementing "first party clients" -- we build and distribute Papers for Mac, Papers for Windows, Papers for iOS, and the OAuth server.  That means our customers should be able to enter their password once for authorisation with some degree of trust.</p>
+
+<p>Typically OAuth2 servers have a web-based authentication process that redirects the user to a web page that asks for permission to authorise the user.  This happens whenever you sign in with Twitter, Facebook, or GitHub.</p>
+
+<p>You may have noticed that first-party OAuth2 clients -- Twitter for iOS, for example -- prompt for the username and password rather than redirecting to a web page.  That's because Twitter authorises once, then stores an <code>accessToken</code> that will be used for subsequent requests.</p>
+
+<p>These tokens can expire, so OAuth2 servers usually send a <code>refreshToken</code> as well.  When a Papers client authorises with our OAuth2 server, we send back this token.  When the <code>accessToken</code> expires, the desktop or mobile app can make another authorisation request with the <code>refreshToken</code> to get a new <code>accessToken</code>.</p>
+
+<p>The rest of the authentication API is purely HTTP <code>Authorization</code> headers and standard GET or POST requests, so it's very easy to use with <code>NSURLRequest</code> and .NET, or even <a href="http://curl.haxx.se/">curl</a> -- we used curl a lot for trying things out during development.</p>
+
+<h4 id="toolsanddependencies">Tools and dependencies</h4>
+
+<p>Aside from the OAuth2 server referenced above, we used:</p>
+
+<ul>
+<li><a href="http://expressjs.com/">Express</a> for the framework;</li>
+<li><a href="http://mongoosejs.com/">Mongoose</a> to build our models;</li>
+<li><a href="https://www.npmjs.org/package/bcrypt">bcrypt</a> for password encryption;</li>
+<li><a href="https://www.npmjs.org/package/superagent">superagent</a> for testing.</li>
+</ul>
+
+<p>To run our example you'll need:</p>
+
+<ul>
+<li>A database (we used MongoDB).</li>
+<li>A client.</li>
+<li>A server.</li>
+</ul>
+
+<p>Clone the <a href="https://github.com/mekentosj/oauth2-example">project</a> from GitHub and run <code>npm seed.js</code>: this will create client and user entries in the database so you can sign in with the web inteface or by using an OAuth client.</p>
+
+<h3 id="authenticationhttpflow">Authentication HTTP flow</h3>
+
+<p>The OAuth authentication process (<a href="http://s.mlkshk.com/r/97VP">unlike its actual implementation</a>) is fairly straightforward:</p>
+
+<ol>
+<li>Make a post request to <code>/oauth/token</code> with your client credentials, posting <code>username</code>, <code>password</code>, <code>client_id</code> and <code>client_secret</code> to request a token (see <a href="https://github.com/mekentosj/oauth2-example/blob/master/test/oauth_test.js">this</a> test at lines 18-22 for a complete list of the parameters).  </li>
+<li>Pass the <code>access_token</code> received to the server to make any successive authenticated request (instead of username and passwords).  </li>
+<li>The server response will also contain a <code>refresh_token</code> and an expiration date (see the <a href="https://github.com/mekentosj/oauth2-example/blob/10680a932d48b3c53b391269cfb737beb9b8005f/models/oauth_refreshtoken.js">refresh token model</a>). Once your access token has expired, make another post request to <code>'/oauth/token'</code> to get a new access token via <code>grant_type: 'refresh_token'</code> (see <a href="https://github.com/mekentosj/oauth2-example/blob/master/test/oauth_test.js">test</a> at lines 47-53).</li>
+</ol>
+
+<p>Below you can find a full example of a post request that will return an access token, made with the <a href="https://www.npmjs.org/package/request">npm module Request</a>:</p>
+
+<pre><code class="javascript">request.post({  
+  url: 'http://' + clientCredentials + '@localhost:3000/oauth/token',
+  form: {
+    grant_type: 'password',
+    username: 'alex@example.com',
+    password: 'password',
+    client_id: 'example-client',
+    client_secret: 'password'
+  },
+}, function(err, res, body) {
+  var accessToken = JSON.parse(body).access_token;
+
+  request.get({
+    url: 'http://localhost:3000/secret',
+    headers: { Authorization: 'Bearer ' + accessToken }
+  }, function(err, res, body) {
+    console.log(body);
+   });
+});
+</code></pre>
+
+<p>The post request we made in our test looks slightly different as we are using supertest and we are also setting a refresh token on <a href="https://github.com/mekentosj/oauth2-example/blob/master/test/oauth_test.js">line 29</a>.</p>
+
+<h5 id="whatareyourclientcredentials">What are your <code>clientCredentials</code>?</h5>
+
+<p>You will need to pass your client's credentials in the URL to make the post request to the Oauth server. <code>clientCredentials</code> will be in the form of <code>client_id:client_secret</code> and Base64-encoded.</p>
+            </section>
+
+            <footer class="post-footer">
+
+                <section class="author">
+                    <h4>Erica Salvaneschi</h4>
+                    <p></p>
+                </section>
+
+                <section class="share">
+                    <h4>Share this post</h4>
+                    <!-- &via=EricaLeCat -->
+                    <a class="icon-twitter" href="http://twitter.com/share?text=Building%20a%20Node%20OAuth2%20server&url=http://blog.papersapp.com/oauth-server-in-node-js/" onclick="window.open(this.href, &#39;twitter-share&#39;, &#39;width=550,height=235&#39;);return false;">
+                        <span class="hidden">Twitter</span>
+                    </a>
+                    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.papersapp.com/oauth-server-in-node-js/" onclick="window.open(this.href, &#39;facebook-share&#39;,&#39;width=580,height=296&#39;);return false;">
+                        <span class="hidden">Facebook</span>
+                    </a>
+                    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://blog.papersapp.com/oauth-server-in-node-js/" onclick="window.open(this.href, &#39;google-plus-share&#39;, &#39;width=490,height=530&#39;);return false;">
+                        <span class="hidden">Google+</span>
+                    </a>
+                </section>
+
+            </footer>
+
+        
+
+    </article>
+
+</main>
+
+    <footer class="site-footer">
+    <a class="subscribe icon-feed" href="http://blog.papersapp.com/rss/"><span class="tooltip">Subscribe!</span></a>
+    <div class="inner">
+         <section class="footer-links">
+            <a href="http://papersapp.com/">Papers</a> •
+            <a href="http://news.papersapp.com/">News</a> •
+            <a href="http://papersapp.com/community/">Community</a> •
+            <a href="http://papersapp.com/careers/">Careers</a> •
+            <a href="http://papersapp.com/about/">About</a>
+         </section>
+         <section class="copyright">All content copyright <a href="http://blog.papersapp.com/">Papers</a> © 2014 • All rights reserved.</section>
+    </div>
+</footer>
+
+    
+    <script src="./info_files/jquery.js"></script>
+
+    
+    <script type="text/javascript" src="./info_files/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="./info_files/index.js"></script>
+    <script src="./info_files/bootstrap.min.js"></script>
+
+
+<iframe class="transover-tooltip" style="text-align: left; border: 1px solid rgb(204, 204, 204); box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 5px; position: fixed; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; z-index: 2147483647; display: block; left: 683px; top: -1500px; width: 0px; height: 0px; opacity: 0.5313952597646567; background: rgb(252, 247, 217);"></iframe><iframe class="transover-tooltip" style="text-align: left; border: 1px solid rgb(204, 204, 204); box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 5px; position: fixed; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; z-index: 2147483647; top: -1500px; display: none; background: rgb(252, 247, 217);"></iframe><iframe class="transover-tooltip" style="text-align: left; border: 1px solid rgb(204, 204, 204); box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 5px; position: fixed; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; z-index: 2147483647; top: -1500px; display: none; background: rgb(252, 247, 217);"></iframe><style class="pkt_bm_style">                .pkt_bm_loading {                    -webkit-box-shadow: 2px 2px 3px rgba(0,0,0,0.3);                    -moz-box-shadow: 2px 2px 3px rgba(0,0,0,0.3);                    background-color: #f0f0f0;                    border: 2px solid #fff;                    border-radius: 4px;                    box-shadow: 2px 2px 3px rgba(0,0,0,0.3);                    font-size: 16px !important;                    height: 4em !important;                    margin: 0 0.95em 1em 1em;                    opacity: 0;                    padding: 0;                    text-align: center;                    visibility: hidden;                    width: 21em;                    z-index: 9999999998;                }                .pkt_bm_loading_active {                    -moz-animation: show-loading 0.3s ease-out;                    -webkit-animation: show-loading 0.3s ease-out;                    -webkit-transform: translate3d(0,1em,0);                    animation: show-loading 0.3s ease-out;                    transform: translate3d(0,1em,0);                    opacity: 1;                    visibility: visible;                }                @-moz-keyframes spin {                    to {                        -moz-transform: rotate(1turn);                        -webkit-transform: rotate(1turn);                        transform: rotate(1turn);                    }                }                @-webkit-keyframes spin {                    to {                        -moz-transform: rotate(1turn);                        -webkit-transform: rotate(1turn);                        transform: rotate(1turn);                    }                }                @-webkit-keyframes show-loading {                    0% {                        -webkit-transform: translate3d(0,0.5em,0);                        transform: translate3d(0,0.5em,0);                        opacity: 0;                        visibility: hidden;                    }                    1% {                        -webkit-transform: translate3d(0,0.5em,0);                        transform: translate3d(0,0.5em,0);                        opacity: 0;                        visibility: visible;                    }                    100% {                        -webkit-transform: translate3d(0,1em,0);                        transform: translate3d(0,1em,0);                        opacity: 1;                        visibility: visible;                    }                }                @keyframes show-loading {                    0% {                        -webkit-transform: translate3d(0,0.5em,0);                        transform: translate3d(0,0.5em,0);                        opacity: 0;                        visibility: hidden;                    }                    1% {                        -webkit-transform: translate3d(0,0.5em,0);                        transform: translate3d(0,0.5em,0);                        opacity: 0;                        visibility: visible;                    }                    100% {                        -webkit-transform: translate3d(0,1em,0);                        transform: translate3d(0,1em,0);                        opacity: 1;                        visibility: visible;                    }                }                .page_extloading_spinner {                    position: relative !important;                    display: inline-block !important;                    width: 5em !important;                    height: 5em !important;                    margin: 4em 0 0 !important;                    font-size: 5px !important;                    text-indent: 999em !important;                    overflow: hidden !important;                    -moz-animation: spin 0.7s infinite steps(8) !important;                    -webkit-animation: spin 0.7s infinite steps(8) !important;                    animation: spin 0.7s infinite steps(8) !important;                }                .page_extloading_spinner:before,                .page_extloading_spinner:after,                .page_extloading_spinner > div:before,                .page_extloading_spinner > div:after {                    content: '' !important;                    position: absolute !important;                    top: 0 !important;                    left: 2.25em !important;                    width: .5em !important;                    height: 1.5em !important;                    border-radius: .2em !important;                    background: #eee !important;                    box-shadow: 0 3.5em #eee !important;                    -webkit-transform-origin: 50% 2.5em !important;                    -moz-transform-origin: 50% 2.5em !important;                    transform-origin: 50% 2.5em !important;                }                .page_extloading_spinner:before {                    background: #555 !important;                }                .page_extloading_spinner:after {                    -webkit-transform: rotate(-45deg) !important;                    -moz-transform: rotate(-45deg) !important;                    transform: rotate(-45deg) !important;                    background: #777 !important;                }                .page_extloading_spinner > div:before {                    -webkit-transform: rotate(-90deg) !important;                    -moz-transform: rotate(-90deg) !important;                    transform: rotate(-90deg) !important;                    background: #999 !important;                }                .page_extloading_spinner > div:after {                    -webkit-transform: rotate(-135deg) !important;                    -moz-transform: rotate(-135deg) !important;                    transform: rotate(-135deg) !important;                    background: #bbb !important;                };</style><div class="pkt_bm_loading" style="position: fixed; top: 0px; right: 0px;"><div class="page_extloading_spinner"><div></div></div></div></body></html>
